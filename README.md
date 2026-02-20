@@ -29,12 +29,15 @@ uv sync --extra examples
 If you use SwiG in your research, please cite:
 
 ```bibtex
-@article{Yallup2026swig,
-  author  = {Yallup, David},
+@misc{yallup2026swig,
   title   = {Nested Sampling with Slice-within-Gibbs: Efficient Evidence
              Calculation for Hierarchical Bayesian Models},
-  journal = {arXiv preprint},
+  author  = {David Yallup},
   year    = {2026},
+  eprint  = {2602.17414},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.CO},
+  url     = {https://arxiv.org/abs/2602.17414},
 }
 ```
 

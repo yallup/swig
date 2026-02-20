@@ -16,7 +16,11 @@ preferred-citation:
     - family-names: Yallup
       given-names: David
   year: 2026
-  journal: "arXiv preprint"
+  url: "https://arxiv.org/abs/2602.17414"
+  identifiers:
+    - type: other
+      value: "arXiv:2602.17414"
+      description: arXiv preprint
 
 references:
   - type: article
