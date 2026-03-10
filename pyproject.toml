@@ -45,4 +45,4 @@ where = ["."]
 include = ["swig*"]
 
 [tool.uv.sources]
-blackjax = { git = "https://github.com/handley-lab/blackjax.git" }
+blackjax = { git = "https://github.com/handley-lab/blackjax.git", branch = "nested_sampling" }

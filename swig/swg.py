@@ -533,11 +533,10 @@ def build_kernel(
             return (new_psi, final_theta, final_ll_cache), sweep_info
 
         # =====================================================================
-        # Run num_gibbs_sweeps interleaved sweeps
+        # Run one Gibbs sweep
         # =====================================================================
-        sweep_keys = jax.random.split(rng_key, num_gibbs_sweeps)
-        (final_psi, final_theta, final_ll_cache), all_infos = jax.lax.scan(
-            one_gibbs_sweep, (psi, theta, ll_cache), sweep_keys
+        (final_psi, final_theta, final_ll_cache), sweep_info = one_gibbs_sweep(
+            (psi, theta, ll_cache), rng_key
         )
 
         # =====================================================================
@@ -555,11 +554,9 @@ def build_kernel(
             loglikelihood_per_group=final_ll_cache,
         )
 
-        # all_infos is stacked over num_gibbs_sweeps
-        return final_state, all_infos
+        return final_state, sweep_info
 
-    # Wrap in the MCMC update pattern
-    inner_kernel = update_with_mcmc_take_last(constrained_mcmc_swg_fn, num_mcmc_steps=1)
+    inner_kernel = update_with_mcmc_take_last(constrained_mcmc_swg_fn, num_mcmc_steps=num_gibbs_sweeps, num_delete=num_delete)
 
     delete_fn_partial = partial(delete_fn, num_delete=num_delete)
 
