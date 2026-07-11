@@ -44,15 +44,16 @@ If you use SwiG in your research, please cite:
 SwiG builds on the following works:
 
 ```bibtex
-@misc{yallup2026nss,
-  title   = {Nested Slice Sampling: Vectorized Nested Sampling for
-             GPU-Accelerated Inference},
-  author  = {David Yallup and Namu Kroupa and Will Handley},
-  year    = {2026},
-  eprint  = {2601.23252},
+@article{Yallup2026,
+  title         = {Nested Slice Sampling: Vectorized Nested Sampling for {GPU}-Accelerated Inference},
+  author        = {Yallup, David and Kroupa, Namu and Handley, Will},
+  journal       = {Transactions on Machine Learning Research},
+  year          = {2026},
+  issn          = {2835-8856},
+  url           = {https://openreview.net/forum?id=5mF2eRl3gt},
+  eprint        = {2601.23252},
   archivePrefix = {arXiv},
   primaryClass  = {stat.CO},
-  url     = {https://arxiv.org/abs/2601.23252},
 }
 
 @misc{cabezas2024blackjax,

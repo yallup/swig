@@ -21,13 +21,13 @@ import jax
 import jax.numpy as jnp
 
 from blackjax import SamplingAlgorithm
-from blackjax.mcmc.ss import SliceState
-from blackjax.mcmc.ss import build_kernel as build_slice_kernel
-from blackjax.mcmc.ss import sample_direction_from_covariance
+from blackjax.mcmc.slice import SliceState, stepping_out
+from blackjax.mcmc.slice import build_kernel as build_slice_kernel
 from blackjax.ns.adaptive import build_kernel as build_adaptive_kernel
 from blackjax.ns.adaptive import init
 from blackjax.ns.base import delete_fn as default_delete_fn
 from blackjax.ns.from_mcmc import update_with_mcmc_take_last
+from blackjax.ns.nss import sample_direction_from_covariance
 from blackjax.types import Array, ArrayTree, PRNGKey
 
 from swig.swg import (
@@ -117,6 +117,20 @@ def build_kernel(
     """
     T = num_groups
 
+    # Slice kernel (blackjax >= 1.6). The new kernel is proposal-driven:
+    # ``kernel(rng_key, state, logdensity_fn, proposal_generator, width)`` where
+    # ``proposal_generator(rng_key, position, logdensity_fn) -> slice_fn``. Our
+    # blocks already build a fully-specified ``slice_fn`` (direction pre-sampled),
+    # so we wrap it in a constant proposal generator and run one univariate slice.
+    _slice_kernel = build_slice_kernel(
+        interval=stepping_out, max_expansions=max_steps, max_shrinkage=max_shrinkage
+    )
+
+    def _run_slice(rng_key, init_slice_state, slice_fn):
+        return _slice_kernel(
+            rng_key, init_slice_state, None, lambda *args: slice_fn
+        )
+
     def compute_per_group_likelihoods(theta: Array, psi: Array) -> Array:
         return jax.vmap(
             lambda theta_j, data_j: loglikelihood_per_group_fn(theta_j, psi, data_j)
@@ -179,11 +193,8 @@ def build_kernel(
                     is_valid = jnp.isfinite(new_lp)
                     return SliceState(position=new_psi, logdensity=new_lp), is_valid
 
-            slice_kernel = build_slice_kernel(
-                slice_fn, max_steps=max_steps, max_shrinkage=max_shrinkage
-            )
             init_ss = SliceState(position=current_psi, logdensity=current_total_logprior)
-            final_ss, slice_info = slice_kernel(rng_key, init_ss)
+            final_ss, slice_info = _run_slice(rng_key, init_ss, slice_fn)
 
             new_psi = final_ss.position
             if likelihood_depends_on_psi:
@@ -238,11 +249,8 @@ def build_kernel(
                 is_valid = jnp.isfinite(new_logprior_site) & in_contour
                 return SliceState(position=new_theta_t, logdensity=new_logprior_site), is_valid
 
-            slice_kernel = build_slice_kernel(
-                slice_fn, max_steps=max_steps, max_shrinkage=max_shrinkage
-            )
             init_ss = SliceState(position=current_theta_t, logdensity=current_logprior_site)
-            final_ss, slice_info = slice_kernel(rng_key, init_ss)
+            final_ss, slice_info = _run_slice(rng_key, init_ss, slice_fn)
 
             new_theta_t = final_ss.position
             new_ll_t = loglikelihood_per_group_fn(new_theta_t, current_psi, data_t)
